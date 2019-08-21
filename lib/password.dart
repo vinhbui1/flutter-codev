@@ -9,6 +9,8 @@ class _PasswordState extends State<Password> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+              resizeToAvoidBottomPadding: false,
+
         body: Container(
       decoration: BoxDecoration(
         image: DecorationImage(
