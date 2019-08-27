@@ -38,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
      
         Image.asset(
               'images/splash-screen.jpg',
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
             );
       
     

@@ -1,82 +1,64 @@
-import 'package:firt/Login.dart';
-import 'dart:async';
-import './createPass.dart';
-
+import 'package:firt/createPass.dart';
 import 'package:flutter/material.dart';
-import './register.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 
-class Email extends StatefulWidget {
+class Password extends StatefulWidget {
+  final String text;
+  Password({this.text});
+
   @override
-  _EmailState createState() => _EmailState();
+  _PasswordState createState() => _PasswordState(email: text);
 }
 
-class _EmailState extends State<Email> {
-  void loginData() {
-    String email = _text.text;
-    String url = 'http://sanofi.codev.vn/api/user/checkmail?emai';
+class _PasswordState extends State<Password> {
 
-    http.post(url,
-        headers: {'Accept': 'application/json'},
-        body: {'emailLogin': email}).then((response) {
+  final enterCode = TextEditingController();
+ void reset() {
+    String emailuser = email;
+    String url = 'http://sanofi.codev.vn/api/user/resend_code?email';
+    http.post(url, headers: {
+      'Accept': 'application/json'
+    }, body: {
+      'email': emailuser,
+    }).then((response) {
       //print('Response:${response.body}');
       Map<String, dynamic> data;
       var extracdata = json.decode(response.body);
       data = extracdata;
       print(data['statusMessage']);
-      print(data['data']['email']);
-      if (data['statusMessage'] == "User found!") {
+      print(data['data']);
+    });
+  }
+  void getCode() {
+    String verify = enterCode.text;
+    String url = 'http://sanofi.codev.vn/api/user/checkcode?email&verify_code';
+    http.post(url, headers: {
+      'Accept': 'application/json'
+    }, body: {
+      'email': email,
+      'verify_code': verify,
+    }).then((response) {
+      //print('Response:${response.body}');
+      Map<String, dynamic> data;
+      var extracdata = json.decode(response.body);
+      data = extracdata;
+      print(data['statusMessage']);
+      print(data['status']);
+      if (data['statusMessage'] == "Check code Success!") {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => Login(
+              builder: (context) => CreatePass(
                     text: email,
+                    veripass: verify,
                   )),
         );
       } else {
-        //   String email = _text.text;
-        //   String url = 'http://sanofi.codev.vn/api/user/getcode?email';
-        //   http.post(url,
-        //       headers: {'Accept': 'application/json'},
-        //       body: {'email': email}).then((response) {
-        //     //print('Response:${response.body}');
-        //     Map<String, dynamic> data;
-        //     var extracdata = json.decode(response.body);
-        //     data = extracdata;
-        //     print(data['statusMessage']);
-        //     print(data['data']);
-        //     if (data['statusMessage'] == "Get code Success") {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Password(
-                    text: email,
-                  )),
-        );
-        //     }
-        //   });
+        _showdialog();
       }
     });
-  }
-
-  final _text = TextEditingController();
-  bool _validate = false;
-
-  @override
-  void dispose() {
-    _text.dispose();
-    super.dispose();
-  }
-
-  void _submitCommand() {
-    String email = _text.text;
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-
-    RegExp regex = new RegExp(pattern);
-    if (!regex.hasMatch(email)) return _showdialog();
   }
 
   void _showdialog() {
@@ -84,12 +66,7 @@ class _EmailState extends State<Email> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            backgroundColor: Color.fromRGBO(202, 174, 122, 1),
-            contentTextStyle: TextStyle(fontFamily: 'Schyler'),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            content: Text('Enter Valid Email'),
+            content: Text('Pleas Check Your Code'),
             actions: <Widget>[
               new FlatButton(
                 child: Text('oke'),
@@ -102,6 +79,9 @@ class _EmailState extends State<Email> {
         });
   }
 
+  final String email;
+  _PasswordState({this.email});
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -109,7 +89,7 @@ class _EmailState extends State<Email> {
         body: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("images/sanofi.jpg"),
+              image: AssetImage("images/pass.jpg"),
               fit: BoxFit.fill,
             ),
           ),
@@ -117,6 +97,28 @@ class _EmailState extends State<Email> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                new Container(
+                  height: 60,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    //color: Colors.black,
+                    image: DecorationImage(
+                      image: AssetImage("images/icon-user.jpg"),
+                    ),
+                  ),
+                ),
+                new Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        email,
+                        style: TextStyle(fontSize: 24, color: Colors.grey),
+                      ),
+                    )
+                  ],
+                ),
                 new Stack(
                   alignment: Alignment.center,
                   children: <Widget>[
@@ -129,35 +131,6 @@ class _EmailState extends State<Email> {
                         borderRadius: BorderRadius.circular(25.7),
                       ),
                     ),
-
-                    // new Container(
-                    //   width: MediaQuery.of(context).size.width,
-                    //   height: MediaQuery.of(context).size.height / 13.5,
-                    //   padding: const EdgeInsets.only(right: 40),
-                    //   margin: const EdgeInsets.only(
-                    //       left: 40, right: 40, bottom: 180),
-                    //   // child: TextFormField(
-                    //   //   controller: _text,
-                    //   //  // textAlign: TextAlign.center,
-                    //   //  // keyboardType: TextInputType.emailAddress,
-                    //   //   decoration: InputDecoration(
-                    //   //     labelText: 'Email Address',
-                    //   //     errorText: _validate ? 'Value Can\'t Be Empty' : null,
-                    //   //     filled: true,
-                    //   //     fillColor: Colors.white,
-                    //   //     border: OutlineInputBorder(
-                    //   //         borderRadius:
-                    //   //             BorderRadius.all(Radius.circular(75.0))),
-                    //   //   ),
-                    //   //   validator: (String arg) {
-                    //   //     if (arg.length == null)
-                    //   //       return 'Email can not null';
-                    //   //     else
-                    //   //       return null;
-                    //   //   },
-                    //   // ),
-                    // ),
-
                     new Container(
                         width: MediaQuery.of(context).size.width,
                         height: MediaQuery.of(context).size.height / 13.5,
@@ -168,12 +141,10 @@ class _EmailState extends State<Email> {
                         ),
                         child: FlatButton(
                           onPressed: () {
-                            _submitCommand();
-                            loginData();
-                            // create();
+                            getCode();
                           },
                           // color: Color.fromRGBO(202, 174, 122, 1),
-                          child: Text('Continue',
+                          child: Text('Register Now',
                               style:
                                   TextStyle(fontSize: 23, color: Colors.white)),
                         )),
@@ -181,12 +152,12 @@ class _EmailState extends State<Email> {
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height / 13.5,
                       margin: const EdgeInsets.only(
-                          left: 40, right: 40, bottom: 200),
+                          left: 40, right: 40, bottom: 180),
                       child: TextField(
                         enabled: false,
                         decoration: InputDecoration(
-                          suffixIcon: Icon(
-                            Icons.mail,
+                          prefixIcon: Icon(
+                            Icons.keyboard,
                             color: Colors.white,
                           ),
                           border: OutlineInputBorder(
@@ -197,22 +168,25 @@ class _EmailState extends State<Email> {
                         ),
                       ),
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(82, 92, 164, 1),
-                        borderRadius: BorderRadius.circular(25.7),
+                        boxShadow: [
+                          new BoxShadow(
+                            color: Color.fromRGBO(82, 92, 164, 1),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     new Container(
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height / 13.5,
-                      padding: const EdgeInsets.only(left: 40, right: 40),
+                      padding: const EdgeInsets.only(left: 40),
                       margin: const EdgeInsets.only(
-                          left: 40, right: 40, bottom: 200),
+                          left: 40, right: 40, bottom: 180),
                       child: TextField(
-                        controller: _text,
+                        controller: enterCode,
                         textAlign: TextAlign.center,
-                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          hintText: 'Email Address',
+                          hintText: 'Enter Code',
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -223,6 +197,17 @@ class _EmailState extends State<Email> {
                         ),
                       ),
                     ),
+                     new Container(
+                        //  width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height / 13.5,
+                        padding: const EdgeInsets.only(left: 80),
+                        margin: const EdgeInsets.only(left: 80, top: 240),
+                        child: new GestureDetector(
+                          onTap: () {
+                            reset();
+                          },
+                          child: new Text("ReSend Code"),
+                        )),
                   ],
                 ),
               ],
